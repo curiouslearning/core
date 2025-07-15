@@ -1,0 +1,31 @@
+version: 2.1
+orbs:
+  node: circleci/node@7.0.0
+jobs:
+  build_and_publish:
+    executor: node/default
+    steps:
+      - checkout
+      - run: sudo npm install -g npm@latest
+      - node/install-packages:
+          cache-path: ~/project/node_modules
+      - run: npm run build
+      - run: mkdir -p ~/.ssh
+      - run: ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - run: npx semantic-release
+
+workflows:
+  test_and_publish:
+    # Run the test jobs first, then the release only when all the test jobs are successful
+    jobs:
+      - node/test
+      - build_and_publish:
+          context:
+            - github-context
+            - npmjs-context
+          requires:
+            - node/test
+          filters:
+            branches:
+              only:
+                - main
