@@ -5,9 +5,9 @@
   "main": "./dist/index.js",
   "private": false,
   "exports": {
-    "./utils": {
-      "import": "./dist/utils.js",
-      "types": "./dist/utils/index.d.ts"
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     }
   },
   "files": [
