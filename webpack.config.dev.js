@@ -1,20 +1,21 @@
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const mode = process.env.NODE_ENV || 'production';
 
 module.exports = {
   devServer: {
     static: {
-      directory: path.join(__dirname, 'build'),
+      directory: path.resolve(__dirname, './example-app'),
     },
     client: {
       overlay: true,
     },
     compress: false,
-    port: 8080
+    port: 4600
   },
   entry: {
-    index: './src/index.ts'
+    index: './example-app/index.ts'
   },
   mode,
   module: {
@@ -30,14 +31,10 @@ module.exports = {
     extensions: ['.ts', '.js'],
   },
   output: {
-    filename: '[name].js',
-    path: path.resolve(__dirname, 'dist'),
-    clean: true,
-    library: {
-      type: 'module'
-    }
+    path: path.resolve(__dirname, './example-app'),
+    filename: 'index.js',
   },
-  experiments: {
-    outputModule: true,
-  }
+  plugins: [new HtmlWebpackPlugin({
+    template: path.resolve(__dirname, './example-app/template.html')
+  })]
 };
