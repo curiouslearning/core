@@ -113,7 +113,6 @@ export class AudioPlayer {
 
         sourceNode.connect(this.audioContext.destination);
         sourceNode.start();
-        console.log('play this.audioPlayingMap', this.audioPlayingMap);
         resolve(sourceNode);
       }, throttle);
     })
