@@ -41,5 +41,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@songbaek/fifo-map": "^0.0.0"
   }
 }
