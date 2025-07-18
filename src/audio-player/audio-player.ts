@@ -33,9 +33,23 @@ export interface AudioPlayerPlayOptions {
 }
 
 export interface AudioPlayerOptions {
+  /**
+   * The maximum number of buffered audio. Defaults to 10.
+   * 
+   * This maintains a number of buffered audio in memory, and prevent rebuffering once stored.
+   * 
+   * Stored audio are kept in FIFO manner, where older/stale files will be replaced by new ones.
+   * 
+   * The default value is arbitrary and can be set according to need.
+   */
   maxBufferSize: number;
 }
 
+/**
+ * Curious Learning audio player class.
+ * 
+ * Used to load, store and play audio files concurrently, or in succession.
+ */
 export class AudioPlayer {
 
   protected audioContext = new AudioContext();
@@ -105,6 +119,11 @@ export class AudioPlayer {
     })
   }
 
+  /**
+   * Play audio files in succession.
+   * @param sources array of audio file sources
+   * @returns 
+   */
   async playQueue(sources: string[]) {
     if (!sources || !sources.length) return;
     const firstSource = sources.shift();
@@ -118,12 +137,19 @@ export class AudioPlayer {
     return this.play(firstSource, options);
   }
 
+  /**
+   * Stops the audio with the given file source.
+   * @param src the audio file source that will be stopped.
+   */
   stop(src: string): void {
     this.audioPlayingMap.get(src)?.disconnect();
     this.audioPlayingMap.get(src)?.stop();
     this.audioPlayingMap.delete(src);
   }
 
+  /**
+   * Stops all audio concurrently playing.
+   */
   stopAll(): void {
     for (const [key] of this.audioPlayingMap) {
       this.stop(key);
