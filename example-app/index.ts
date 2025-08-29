@@ -48,9 +48,8 @@ const random = (min, max) => Math.random() * (max - min) + min;
 // test component
 let id;
 const startAnimationLoop = () => {
-  console.log('started');
   let components: TestComponent[] = [];
-  for(let x = 0; x < 1000; x++) {
+  for(let x = 0; x < 100; x++) {
     const testComponent = new TestComponent({
       coordinates: { x: 200, y: 200 },
       dimension: { height: 50, width: 50 },
@@ -60,7 +59,11 @@ const startAnimationLoop = () => {
   }
 
   const canvas = document.querySelector('#root-canvas') as HTMLCanvasElement;
+  const canvas2 = document.querySelector('#root-canvas2') as HTMLCanvasElement;
+  const canvas3 = document.querySelector('#root-canvas3') as HTMLCanvasElement;
   const context = canvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
+  const context2 = canvas2.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
+  const context3 = canvas3.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
   const rect = canvas.getBoundingClientRect();
   const canvasHeight = rect.height;
   const canvasWidth = rect.width;
@@ -69,13 +72,32 @@ const startAnimationLoop = () => {
     context.clearRect(0, 0, canvasWidth, canvasHeight);
     components.forEach((component) => {
       component._runRenderLifeCycle(
-        context, { 
+        context, {
           deltaTime: { current },
           offset: { x: 0, y: 0 }
         }
       );
-    })
+    });
     
+    context2.clearRect(0, 0, canvasWidth, canvasHeight);
+    components.forEach((component) => {
+      component._runRenderLifeCycle(
+        context2, {
+          deltaTime: { current },
+          offset: { x: 0, y: 0 }
+        }
+      );
+    });
+
+    context3.clearRect(0, 0, canvasWidth, canvasHeight);
+    components.forEach((component) => {
+      component._runRenderLifeCycle(
+        context3, {
+          deltaTime: { current },
+          offset: { x: 0, y: 0 }
+        }
+      );
+    });
     id = requestAnimationFrame(animate);
   };
 

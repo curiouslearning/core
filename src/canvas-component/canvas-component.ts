@@ -65,7 +65,7 @@ export abstract class CanvasComponent {
     return {
       x: oX + x,
       y: oY + y
-    }
+    };
   }
 
   /**

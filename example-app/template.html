@@ -1,14 +1,18 @@
 <style>
-  #root-canvas {
+  .canvas {
     border: 1px solid black;
     background-color: transparent;
     overflow: hidden;
-    display: block;
+    display: inline-block;
   }
 </style>
 
-<button id="render">render</button>
-<button id="play">play</button>
-<button id="playQueue">playQueue</button>
-<button id="playThrottled">playThrottled</button>
-<canvas id="root-canvas" height="500" width="900"></canvas>
+<div>
+  <button id="render">render</button>
+  <button id="play">play</button>
+  <button id="playQueue">playQueue</button>
+  <button id="playThrottled">playThrottled</button>
+</div>
+<canvas id="root-canvas" class="canvas" height="500" width="900"></canvas>
+<canvas id="root-canvas2" class="canvas" height="500" width="900"></canvas>
+<canvas id="root-canvas3" class="canvas" height="500" width="900"></canvas>

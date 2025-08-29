@@ -4,6 +4,7 @@ import { moveBy } from '../../src/canvas-component-helpers/move-by';
 
 export class TestComponent extends CanvasComponent {
   direction: OrderedPair = { x: 3, y: 1 };
+
   update(deltaTime: DeltaTime): void {
     moveBy(this, { x: 0, y: 0 }, { x: 900, y: 500 });
   }
