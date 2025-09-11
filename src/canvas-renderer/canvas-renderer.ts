@@ -53,23 +53,15 @@ export class CanvasRenderer {
       });
     }
   }
-
-  showFps() {
-    this.context.font = '30px Arial';
-    this.context.fillStyle = 'black'; // Set desired color
-    this.context.fillText(`FPS: ${this.deltaTime.fps}`, 10, 40);
-  }
     
   loopAnimation(time: number) {
     this.deltaTime.tick(time);
-    console.log('this.deltaTime.canAnimate()', this.deltaTime.canAnimate(), this.deltaTime);
     // console.log(this.component.children[0].coordinates);
-    if (this.deltaTime.canAnimate()) {
+    if (this.deltaTime.hasFpsElapsed()) {
       this.clearCanvas();
       this.renderComponent(this.component, this.componentOptions);
     }
 
-    this.showFps();
     this.animationId = requestAnimationFrame((frame: number) => this.loopAnimation(frame));
   }
 

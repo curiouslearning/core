@@ -23,17 +23,18 @@ export class DeltaTime {
   }
 
   tick(current: number) {
+    console.log('tick', current);
     this.current = current;
     this.delta = (current - this.last);
     this.last = current;
     this.ellapsedFrames = current - this.lastFrame;
 
-    if (this.canAnimate()) {
+    if (this.hasFpsElapsed()) {
       this.lastFrame = current - (this.ellapsedFrames % this.interval);
     }
   }
 
-  canAnimate() {
+  hasFpsElapsed() {
     return this.ellapsedFrames >= this.interval || !this.interval;
   }
 }
