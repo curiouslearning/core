@@ -29,7 +29,6 @@ describe('DeltaTime', () => {
       
 
       it('current should be 16', () => {
-        console.log('frame1 case 1')
         expect(deltaTime.current).toBe(frame1);
       });
 
@@ -48,7 +47,6 @@ describe('DeltaTime', () => {
       });
 
       it('current should be 32', () => {
-        console.log('frame2 case 1')
         expect(deltaTime.current).toBe(frame2);
       });
 
