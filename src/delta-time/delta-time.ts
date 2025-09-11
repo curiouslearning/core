@@ -23,7 +23,6 @@ export class DeltaTime {
   }
 
   tick(current: number) {
-    console.log('tick', current);
     this.current = current;
     this.delta = (current - this.last);
     this.last = current;

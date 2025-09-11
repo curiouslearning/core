@@ -66,7 +66,7 @@ describe('CanvasComponent', () => {
         const offset: OrderedPair = { x: 5, y: 5 };
 
         // Act
-        component._runRenderLifeCycle(context, { deltaTime, offset });
+        component.render(context, { deltaTime, offset });
       });
 
       it('should call update', () => {
