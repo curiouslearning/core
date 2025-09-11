@@ -54,8 +54,6 @@ export class CanvasComponent {
   constructor(public options?: CanvasComponentOptions) {
     this.coordinates = options?.coordinates || { x: 0, y: 0 };
     this.dimension = options?.dimension || { height: 0, width: 0 };
-
-    console.log('CanvasComponentthis', this);
   }
 
   /**
