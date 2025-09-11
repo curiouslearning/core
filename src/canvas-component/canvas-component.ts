@@ -1,9 +1,9 @@
 
-import { DeltaTime, Dimension, OrderedPair } from '../types';
+import { DeltaTime } from '../delta-time/delta-time';
+import { Dimension, OrderedPair } from '../types';
 
 export interface CanvasComponentRenderOptions {
   offset?: OrderedPair;
-  deltaTime: DeltaTime;
 }
 
 export interface CanvasComponentOptions {
@@ -15,7 +15,7 @@ export interface CanvasComponentOptions {
 /**
  * Base building block for canvas-based components.
  */
-export abstract class CanvasComponent {
+export class CanvasComponent {
   /**
    * Default=true.
    * 
@@ -52,8 +52,10 @@ export abstract class CanvasComponent {
   dimension: Dimension = { height: 0, width: 0 };
 
   constructor(public options?: CanvasComponentOptions) {
-    this.coordinates = options.coordinates || { x: 0, y: 0 };
-    this.dimension = options.dimension || { height: 0, width: 0 };
+    this.coordinates = options?.coordinates || { x: 0, y: 0 };
+    this.dimension = options?.dimension || { height: 0, width: 0 };
+
+    console.log('CanvasComponentthis', this);
   }
 
   /**
@@ -84,53 +86,5 @@ export abstract class CanvasComponent {
    */
   render(context: CanvasRenderingContext2D, options?: CanvasComponentRenderOptions) {
     
-  }
-
-  /**
-   * Automatically called by the render cycle. Do not override this method.
-   * 
-   * Render is skipped when active=false
-   * @param context 
-   * @param options 
-   */
-  _render(context: CanvasRenderingContext2D, options?: CanvasComponentRenderOptions) {
-    if (!this.active) return;
-    if (options?.offset) this.offset = options.offset;
-    this.render(context, options);
-  }
-
-  /**
-   * Automatically called by the render cycle. Do not override this method.
-   * 
-   * Update is skipped when pause=true
-   * @param deltaTime 
-   */
-  _update(deltaTime: DeltaTime) {
-    this.deltaTime = deltaTime;
-    if (!this.paused) this.update(deltaTime);
-  }
-
-  _runRenderLifeCycle(context: CanvasRenderingContext2D, options: CanvasComponentRenderOptions) {
-    // if not active, skip.
-    if (! this.active) return;
-    
-    const { deltaTime, offset } = options;
-
-    if (offset) this.offset = offset;
-    this._update(deltaTime);
-
-    this._render(context, options);
-
-    if (!this.children || !this.children.length) return;
-
-    for(let child of this.children) {
-      child._runRenderLifeCycle(
-        context,
-        {
-          deltaTime,
-          offset: this.computedCoordinates
-        }
-      );
-    }
   }
 }

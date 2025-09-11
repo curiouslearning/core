@@ -3,10 +3,6 @@ export interface OrderedPair {
   y: number;
 }
 
-export interface DeltaTime {
-  current: number;
-}
-
 export interface Dimension {
   width: number;
   height: number;
