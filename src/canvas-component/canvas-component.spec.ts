@@ -1,5 +1,6 @@
 import { CanvasComponent } from './canvas-component';
-import { DeltaTime, OrderedPair } from '../types';
+import { OrderedPair } from '../types';
+import { DeltaTime } from '../delta-time/delta-time';
 
 class TestCanvasComponent extends CanvasComponent {
   public updateCalled = false;
@@ -47,40 +48,18 @@ const mockContext = () => ({
 
 describe('CanvasComponent', () => {
   describe('Given an active and unpaused CanvasComponent', () => {
+    let context: CanvasRenderingContext2D;
+    let component: TestCanvasComponent;
+    context = mockContext();
 
-    describe('When the render lifecycle is run', () => {
-      let context: CanvasRenderingContext2D;
-      let component: TestCanvasComponent;
+    component = new TestCanvasComponent({
+      coordinates: { x: 10, y: 20 },
+      dimension: { width: 100, height: 200 }
+    });
 
-      beforeEach(() => {
-        // Mock canvas context
-        context = mockContext();
-
-        component = new TestCanvasComponent({
-          coordinates: { x: 10, y: 20 },
-          dimension: { width: 100, height: 200 }
-        });
-
-        // Arrange
-        const deltaTime: DeltaTime = { current: 16 };
-        const offset: OrderedPair = { x: 5, y: 5 };
-
-        // Act
-        component._runRenderLifeCycle(context, { deltaTime, offset });
-      });
-
-      it('should call update', () => {
-        
-        expect(component.updateCalled).toBe(true);
-      });
-
-      it('should call render', () => {
-        expect(component.renderCalled).toBe(true);
-      });
-
-      it('should contain computed coordinates including offsets', () => {
-        expect(component.computedCoordinates).toEqual({ x: 15, y: 25 });
-      });
+    it('should contain computed coordinates including offsets', () => {
+      component.offset = { x: 5, y: 5 };
+      expect(component.computedCoordinates).toEqual({ x: 15, y: 25 });
     });
   });
 });

@@ -1,6 +1,8 @@
+import { DeltaTime } from 'src/delta-time/delta-time';
 import { Dimension, OrderedPair } from 'src/types';
 
 export const moveBy = (
+  delta: DeltaTime,
   component: { dimension: Dimension, coordinates: OrderedPair, direction: OrderedPair },
   minBounds?: OrderedPair, maxBounds?: OrderedPair,
   boundsOffset = 1
@@ -27,6 +29,7 @@ export const moveBy = (
   ) directionY *= -1;
   component.direction.y = directionY;
 
+  // TODO: animating utilities need to use delta for a unified rate of animation between varying framerates
   component.coordinates.x += directionX;
   component.coordinates.y += directionY;
 };

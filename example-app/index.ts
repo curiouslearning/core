@@ -2,6 +2,8 @@ import { SceneManager } from '../src/scene-manager/scene-manager';
 import { TestScene } from './scenes/test-scene';
 import { AudioPlayer } from '../src/audio-player/audio-player';
 import { TestComponent } from './components/test-component';
+import { CanvasRenderer } from '../src/canvas-renderer/canvas-renderer';
+import { CanvasComponent } from '../src/canvas-component/canvas-component';
 
 const sceneManager = new SceneManager();
 sceneManager.addScene('test', TestScene);
@@ -43,72 +45,50 @@ document.querySelector('#playQueue')?.addEventListener('click', () => player.pla
 ]));
 
 
-const random = (min, max) => Math.random() * (max - min) + min;
-
+const random = (min, max): number => Math.random() * (max - min) + min;
+const randomSign = () => Math.random() < 0.5 ? -1 : 1;
+const genRandomDirection = () => ({ x: (random(5, 10) * randomSign()), y: (random(2, 4) * randomSign()) })
 // test component
-let id;
-const startAnimationLoop = () => {
-  let components: TestComponent[] = [];
-  for(let x = 0; x < 100; x++) {
-    const testComponent = new TestComponent({
-      coordinates: { x: 200, y: 200 },
-      dimension: { height: 50, width: 50 },
-    });
-    testComponent.direction = { x: random(-5, 5), y: random(-5, 5) };
-    components.push(testComponent);
-  }
+let components: TestComponent[] = [];
+let components2: TestComponent[] = [];
+for(let x = 0; x < 1; x++) {
+  const testComponent = new TestComponent({
+    coordinates: { x: 200, y: 200 },
+    dimension: { height: 50, width: 50 }
+  });
+  testComponent.direction = genRandomDirection();
+  components.push(testComponent);
 
-  const canvas = document.querySelector('#root-canvas') as HTMLCanvasElement;
-  const canvas2 = document.querySelector('#root-canvas2') as HTMLCanvasElement;
-  const canvas3 = document.querySelector('#root-canvas3') as HTMLCanvasElement;
-  const context = canvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
-  const context2 = canvas2.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
-  const context3 = canvas3.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
-  const rect = canvas.getBoundingClientRect();
-  const canvasHeight = rect.height;
-  const canvasWidth = rect.width;
-  console.log(rect);
-  const animate = (current: number = 0) => {
-    context.clearRect(0, 0, canvasWidth, canvasHeight);
-    components.forEach((component) => {
-      component._runRenderLifeCycle(
-        context, {
-          deltaTime: { current },
-          offset: { x: 0, y: 0 }
-        }
-      );
-    });
-    
-    context2.clearRect(0, 0, canvasWidth, canvasHeight);
-    components.forEach((component) => {
-      component._runRenderLifeCycle(
-        context2, {
-          deltaTime: { current },
-          offset: { x: 0, y: 0 }
-        }
-      );
-    });
-
-    context3.clearRect(0, 0, canvasWidth, canvasHeight);
-    components.forEach((component) => {
-      component._runRenderLifeCycle(
-        context3, {
-          deltaTime: { current },
-          offset: { x: 0, y: 0 }
-        }
-      );
-    });
-    id = requestAnimationFrame(animate);
-  };
-
-  animate();
+    const testComponent2 = new TestComponent({
+    coordinates: { x: 200, y: 200 },
+    dimension: { height: 50, width: 50 },
+  });
+  testComponent2.direction = JSON.parse(JSON.stringify(testComponent.direction));
+  components2.push(testComponent2);
 }
 
+const mycomponent = new CanvasComponent();
+mycomponent.children = components;
+
+const mycomponent2 = new CanvasComponent();
+mycomponent2.children = components2;
+
+const canvas = document.querySelector('#root-canvas') as HTMLCanvasElement;
+const canvasRenderer = new CanvasRenderer({ canvas, fps: 10 });
+
+const canvas2 = document.querySelector('#root-canvas2') as HTMLCanvasElement;
+const canvasRenderer2 = new CanvasRenderer({ canvas: canvas2, fps: 30 });
+
 document.querySelector('#render')?.addEventListener('click', () => {
-  if (id) {
-    cancelAnimationFrame(id);
-    id = null;
+  if (canvasRenderer.rendering) {
+    canvasRenderer.dispose();
   } else {
-    startAnimationLoop();
+    canvasRenderer.render(mycomponent);
+  }
+
+  if (canvasRenderer2.rendering) {
+    canvasRenderer2.dispose();
+  } else {
+    canvasRenderer2.render(mycomponent2);
   }
 });
