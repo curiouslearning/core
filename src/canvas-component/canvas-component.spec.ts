@@ -62,4 +62,35 @@ describe('CanvasComponent', () => {
       expect(component.computedCoordinates).toEqual({ x: 15, y: 25 });
     });
   });
+
+  describe('Given the default id', () => {
+    const component = new TestCanvasComponent({
+      coordinates: { x: 10, y: 20 },
+      dimension: { width: 100, height: 200 }
+    });
+
+    it('should have an id', () => {
+      console.log(component.id);
+      expect(component.id).toBeTruthy();
+    });
+
+    it('should contain class name', () => {
+      expect(component.id).toContain('TestCanvasComponent');
+    });
+
+    describe('Given a child component with id=test', () => {
+      const component2 = new TestCanvasComponent({
+        id: 'test'
+      });
+
+      describe('When getChildById() is called', () => {
+        it('should yield the child component', () => {
+          component.children.push(component2);
+          const child = component.getChildById('test');
+
+          expect(child).toEqual(component2);
+        });
+      });
+    });
+  });
 });

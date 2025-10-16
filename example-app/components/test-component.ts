@@ -35,5 +35,13 @@ export class TestComponent extends CanvasComponent {
       this.computedCoordinates.x + 5,
       this.computedCoordinates.y + 15
     );
+
+    context.font = '10px Arial';
+    context.fillStyle = 'black'; // Set desired color
+    context.fillText(
+      `${this.id}`,
+      this.computedCoordinates.x + 5,
+      this.computedCoordinates.y + 25
+    );
   }
 }
