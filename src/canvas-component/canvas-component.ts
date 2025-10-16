@@ -7,8 +7,9 @@ export interface CanvasComponentRenderOptions {
 }
 
 export interface CanvasComponentOptions {
-  coordinates: OrderedPair;
-  dimension: Dimension;
+  coordinates?: OrderedPair;
+  dimension?: Dimension;
+  id?: string;
   [key: string]: any;
 }
 
@@ -16,6 +17,18 @@ export interface CanvasComponentOptions {
  * Base building block for canvas-based components.
  */
 export class CanvasComponent {
+  /**
+   * Internal property. Do not modify.
+   */
+  static NEXT_ID = 0;
+
+  /**
+   * Id of component.
+   * 
+   * It is recommended to use a unique id for components, to make it easier to refer to them in the parent context.
+   */
+  id: string = '';
+
   /**
    * Default=true.
    * 
@@ -54,6 +67,7 @@ export class CanvasComponent {
   constructor(public options?: CanvasComponentOptions) {
     this.coordinates = options?.coordinates || { x: 0, y: 0 };
     this.dimension = options?.dimension || { height: 0, width: 0 };
+    this.id = options?.id || new Date().getTime() + CanvasComponent.NEXT_ID++ + this.constructor.name;
   }
 
   /**
@@ -66,6 +80,15 @@ export class CanvasComponent {
       x: oX + x,
       y: oY + y
     };
+  }
+
+  /**
+   * Retrieve a component's child by the given id. Note that if several children has the same id, only the first one is returned.
+   * @param id 
+   * @returns 
+   */
+  getChildById(id: string): CanvasComponent | undefined {
+    return this.children.find((child) => child.id === id);
   }
 
   /**
