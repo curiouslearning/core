@@ -41,7 +41,7 @@ export class CanvasRenderer {
   renderComponent(component: CanvasComponent, options?: CanvasComponentRenderOptions) {
     if (!component || !component.active) return;
 
-    if (!component.paused) component.update(this.deltaTime);
+    if (!component.paused) component._update(this.deltaTime);
 
     component.render(this.context, options);
 

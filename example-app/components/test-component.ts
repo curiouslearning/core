@@ -2,15 +2,20 @@ import { CanvasComponent, CanvasComponentRenderOptions } from '../../src/canvas-
 import { OrderedPair } from '../../src/types';
 import { moveBy } from '../../src/canvas-component-helpers/move-by';
 import { DeltaTime } from '../../src/delta-time/delta-time';
+import { MoveEffect, MoveEffectOptions } from '../../src/canvas-component-effects/move-effect/move-effect';
 
 export class TestComponent extends CanvasComponent {
   direction: OrderedPair = { x: 3, y: 1 };
 
-  update(deltaTime: DeltaTime): void {
-    moveBy(deltaTime, this, { x: 0, y: 0 }, { x: 900, y: 500 });
+  override initialize(): void {
+    this.addEffect<MoveEffectOptions>(MoveEffect, {
+      speed: { x: 50, y: 50 },
+      minBounds: { x: 0, y: 0 },
+      maxBounds: { x: 900, y: 500 }
+    });
   }
 
-  render(context: CanvasRenderingContext2D, options?: CanvasComponentRenderOptions): void {
+  override render(context: CanvasRenderingContext2D, options?: CanvasComponentRenderOptions): void {
     context.fillStyle = this.options?.color || 'green';
     // console.log('test component', this.options?.color, this)
     context.fillRect(

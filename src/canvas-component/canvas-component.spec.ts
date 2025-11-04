@@ -6,12 +6,12 @@ class TestCanvasComponent extends CanvasComponent {
   public updateCalled = false;
   public renderCalled = false;
 
-  update(deltaTime: DeltaTime) {
+  override update(deltaTime: DeltaTime) {
     this.updateCalled = true;
     super.update(deltaTime);
   }
 
-  render(context: CanvasRenderingContext2D, options?: any) {
+  override render(context: CanvasRenderingContext2D, options?: any) {
     this.renderCalled = true;
     super.render(context, options);
   }
@@ -70,7 +70,6 @@ describe('CanvasComponent', () => {
     });
 
     it('should have an id', () => {
-      console.log(component.id);
       expect(component.id).toBeTruthy();
     });
 

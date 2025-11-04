@@ -7,6 +7,7 @@
         "esModuleInterop": true,
         "declaration": true,
         "experimentalDecorators": true,
+        "noImplicitOverride": true,
         "moduleResolution": "node",
         "module": "ES2022",
         "target": "es2022",
