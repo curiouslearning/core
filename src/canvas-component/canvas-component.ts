@@ -15,8 +15,8 @@ export interface CanvasComponentOptions {
 }
 
 type NewableClassWithStatic<T, S extends Record<string, any>> = {
-      new (...args: any[]): T; // Represents the constructor signature
-    } & S;
+    new (...args: any[]): T; // Represents the constructor signature
+  } & S;
 
 /**
  * Base building block for canvas-based components.
@@ -90,7 +90,7 @@ export class CanvasComponent {
     };
   }
 
-  addEffect<T = CanvasComponentEffectOptions>(effect: NewableClassWithStatic<any, any>, options: T) {
+  addEffect<T = CanvasComponentEffectOptions>(effect: NewableClassWithStatic<CanvasComponentEffect, any>, options: T) {
     this.removeEffect(effect);
 
     const effectOptions = {
