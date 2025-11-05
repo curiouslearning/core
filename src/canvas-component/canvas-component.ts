@@ -99,6 +99,9 @@ export class CanvasComponent {
   }
 
   dispose() {
+    Object.values(this.effects).forEach((effectInstance) => {
+      effectInstance.dispose();
+    });
     this.effects = {};
   }
 
