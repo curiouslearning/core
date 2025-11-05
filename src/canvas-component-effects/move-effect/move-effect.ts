@@ -9,6 +9,10 @@ export interface MoveEffectOptions extends CanvasComponentEffectOptions {
   boundsOffset?: number;
 }
 
+/**
+ * An effect used to move a component across the x and y axis at a given rate.
+ * It comes with a bounds config to indicate whether it should bounce off the edges of a container.
+ */
 export class MoveEffect extends CanvasComponentEffect<MoveEffectOptions> {
   static override NAME = 'MoveEffect';
 
@@ -44,6 +48,5 @@ export class MoveEffect extends CanvasComponentEffect<MoveEffectOptions> {
     this.options.componentRef.coordinates.y += directionY * deltaTime.dt;
     this.options.speed = { x: directionX, y: directionY };
     
-    console.log(this.options.speed, deltaTime.delta, this.options.componentRef.coordinates);
   }
 }
