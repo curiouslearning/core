@@ -91,6 +91,11 @@ export class CanvasComponent {
   }
 
   addEffect<T = CanvasComponentEffectOptions>(effect: NewableClassWithStatic<any, any>, options: T) {
+    const existingEffect = this.effects[effect.NAME];
+    if (existingEffect) {
+      existingEffect.dispose();
+    }
+    
     const effectOptions = {
       ...options,
       componentRef: this
