@@ -150,7 +150,10 @@ export class CanvasComponent {
    * @param effect 
    */
   removeEffect(effect: typeof CanvasComponentEffect) {
-    this.effects[effect.NAME].dispose();
+    const effectInstance = this.effects[effect.NAME];
+    if (!effectInstance) return;   
+
+    effectInstance.dispose();
     delete this.effects[effect.NAME];
   }
 
