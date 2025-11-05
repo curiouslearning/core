@@ -95,7 +95,7 @@ export class CanvasComponent {
     if (existingEffect) {
       existingEffect.dispose();
     }
-    
+
     const effectOptions = {
       ...options,
       componentRef: this
@@ -143,7 +143,7 @@ export class CanvasComponent {
   update(deltaTime: DeltaTime) {
   }
 
-  _updateEffects(deltaTime) {
+  _updateEffects(deltaTime: DeltaTime) {
     if (!Object.values(this.effects).length) return;
     Object.values(this.effects).forEach((effect) => {
       effect.update(deltaTime);
