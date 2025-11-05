@@ -13,13 +13,12 @@ beforeAll(() => {
 
 // Mock classes
 jest.mock('../delta-time/delta-time');
-jest.mock('../canvas-component/canvas-component');
 
 describe('CanvasRenderer', () => {
   let canvas: HTMLCanvasElement;
   let context: CanvasRenderingContext2D;
   let renderer: CanvasRenderer;
-  let mockComponent: jest.Mocked<CanvasComponent>;
+  let mockComponent: CanvasComponent;
 
   canvas = document.createElement('canvas');
   context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -31,35 +30,38 @@ describe('CanvasRenderer', () => {
     fps: 60,
   }));
 
-  mockComponent = {
-    active: true,
-    paused: false,
-    update: jest.fn(),
-    render: jest.fn(),
-    children: [],
-    computedCoordinates: { x: 0, y: 0 },
-  } as unknown as jest.Mocked<CanvasComponent>;
+  mockComponent = new CanvasComponent({
+    coordinates: { x: 0, y: 0 }
+  });
+  mockComponent.active = true;
+  mockComponent.paused = false;
 
   renderer = new CanvasRenderer({ fps: 60, canvas });
 
   describe('Given a target canvas and a CanvasComponent that is active and not paused', () => {
     describe('When render is called with the component', () => {
-      renderer.render(mockComponent);
-
+      
       it('component should be updated', (done) => {
+        const updateSpy = jest.spyOn(mockComponent, 'update');
+        renderer.render(mockComponent);
         setTimeout(() => {
-          expect(mockComponent.update).toHaveBeenCalled();
+          expect(updateSpy).toHaveBeenCalled();
           done();
-        }, 20);
+        }, 30);
       });
 
       it('component should be rendered', (done) => {
-        
+        const renderSpy = jest.spyOn(mockComponent, 'render');
+        renderer.render(mockComponent);
         setTimeout(() => {
-          expect(mockComponent.render).toHaveBeenCalledWith(context, undefined as unknown as CanvasComponentRenderOptions);
+          expect(renderSpy).toHaveBeenCalledWith(
+            context,
+            undefined as unknown as CanvasComponentRenderOptions
+          );
           done();
-        }, 20);
+        }, 30);
       });
+
     });
   });
 });

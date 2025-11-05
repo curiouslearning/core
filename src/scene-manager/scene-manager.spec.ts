@@ -6,7 +6,7 @@ class MockScene {
 }
 
 class MockTransitionScene extends MockScene {
-  name = 'mock-transition-scene';
+  override name = 'mock-transition-scene';
 }
 
 describe('SceneManager', () => {

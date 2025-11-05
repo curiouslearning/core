@@ -1,4 +1,5 @@
 
+import { CanvasComponentEffect, CanvasComponentEffectOptions } from 'src/canvas-component-effects/canvas-component-effect/canvas-component-effect';
 import { DeltaTime } from '../delta-time/delta-time';
 import { Dimension, OrderedPair } from '../types';
 
@@ -12,6 +13,10 @@ export interface CanvasComponentOptions {
   id?: string;
   [key: string]: any;
 }
+
+type NewableClassWithStatic<T, S extends Record<string, any>> = {
+    new (...args: any[]): T; // Represents the constructor signature
+  } & S;
 
 /**
  * Base building block for canvas-based components.
@@ -64,10 +69,13 @@ export class CanvasComponent {
   deltaTime: DeltaTime;
   dimension: Dimension = { height: 0, width: 0 };
 
+  effects: Record<string, CanvasComponentEffect> = {};
+
   constructor(public options?: CanvasComponentOptions) {
     this.coordinates = options?.coordinates || { x: 0, y: 0 };
     this.dimension = options?.dimension || { height: 0, width: 0 };
     this.id = options?.id || new Date().getTime() + CanvasComponent.NEXT_ID++ + this.constructor.name;
+    this.initialize();
   }
 
   /**
@@ -82,6 +90,23 @@ export class CanvasComponent {
     };
   }
 
+  addEffect<T = CanvasComponentEffectOptions>(effect: NewableClassWithStatic<CanvasComponentEffect, any>, options: T) {
+    this.removeEffect(effect);
+
+    const effectOptions = {
+      ...options,
+      componentRef: this
+    };
+    this.effects[effect.NAME] = new effect(effectOptions);
+  }
+
+  dispose() {
+    Object.values(this.effects).forEach((effectInstance) => {
+      effectInstance.dispose();
+    });
+    this.effects = {};
+  }
+
   /**
    * Retrieve a component's child by the given id. Note that if several children has the same id, only the first one is returned.
    * @param id 
@@ -92,12 +117,46 @@ export class CanvasComponent {
   }
 
   /**
-   * This is where you put the update logic of a component.
+   * Init method, automatically invoked by the component life cycle.
+   */
+  initialize() {
+
+  }
+  /**
+   * Internal update method, which invokes the public update method.
+   * @param deltaTime
+   */
+  _update(deltaTime: DeltaTime) {
+    this.deltaTime = deltaTime;
+    this._updateEffects(deltaTime);
+    this.update(deltaTime);
+  }
+
+  /**
+   * Update method automatically invoked by the component's update life cycle. This is where you put the update logic of a component.
    * @param context 
    * @param renderOptions 
    */
   update(deltaTime: DeltaTime) {
-    
+  }
+
+  _updateEffects(deltaTime: DeltaTime) {
+    if (!Object.values(this.effects).length) return;
+    Object.values(this.effects).forEach((effect) => {
+      effect.update(deltaTime);
+    });
+  }
+
+  /**
+   * Disposes effect and removes it from the component's list of effects
+   * @param effect 
+   */
+  removeEffect(effect: typeof CanvasComponentEffect) {
+    const existingEffect = this.effects[effect.NAME];
+    if (existingEffect) {
+      existingEffect.dispose();
+    }
+    delete this.effects[effect.NAME];
   }
 
   /**
