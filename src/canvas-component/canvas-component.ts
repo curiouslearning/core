@@ -91,10 +91,7 @@ export class CanvasComponent {
   }
 
   addEffect<T = CanvasComponentEffectOptions>(effect: NewableClassWithStatic<any, any>, options: T) {
-    const existingEffect = this.effects[effect.NAME];
-    if (existingEffect) {
-      existingEffect.dispose();
-    }
+    this.removeEffect(effect);
 
     const effectOptions = {
       ...options,
@@ -155,10 +152,10 @@ export class CanvasComponent {
    * @param effect 
    */
   removeEffect(effect: typeof CanvasComponentEffect) {
-    const effectInstance = this.effects[effect.NAME];
-    if (!effectInstance) return;   
-
-    effectInstance.dispose();
+    const existingEffect = this.effects[effect.NAME];
+    if (existingEffect) {
+      existingEffect.dispose();
+    }
     delete this.effects[effect.NAME];
   }
 
