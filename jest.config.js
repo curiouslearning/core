@@ -1,10 +1,5 @@
 /** @type {import("ts-jest").JestConfigWithTsJest} **/
 
-// ignore modules
-const esModules = ['@songbaek/fifo-map'].join('|');
-
-console.log('Config loaded', esModules, 'ignore pattern', `/node_modules/(?!(${esModules})/)`);
-
 module.exports = {
   preset: "ts-jest/presets/js-with-babel",
   collectCoverage: true,
@@ -20,10 +15,12 @@ module.exports = {
   ],
   testEnvironment: "jsdom",
   transform: {
-    "^.+.ts?$": ["ts-jest", { useESM: true }]
+    "^.+.ts?$": ["ts-jest"],
+    "^.+\\.(js|jsx|mjs)$": "babel-jest"
   },
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1', // fix for ESM imports in TypeScript
   },
-  transformIgnorePatterns: [`/node_modules/(?!(${esModules})/)`]
+  transformIgnorePatterns: [
+  ]
 };
