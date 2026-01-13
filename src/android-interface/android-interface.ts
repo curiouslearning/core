@@ -50,7 +50,7 @@ export class AndroidInterface {
       cr_user_id,
       app_id
     } = this.options;
-    
+
     return {
       cr_user_id,
       app_id
@@ -67,8 +67,3 @@ export class AndroidInterface {
     return now.toISOString();
   }
 }
-
-/**
- * Default AndroidInterface singleton.
- */
-export const ANDROID_INTERFACE = new AndroidInterface();
