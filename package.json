@@ -46,6 +46,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@songbaek/fifo-map": "^0.0.0"
+    "@songbaek/fifo-map": "^0.0.0",
+    "zod": "^4.3.5"
   }
 }
