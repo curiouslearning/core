@@ -5,14 +5,12 @@ import { ValidateV1Schema } from './schema-validators';
 export interface AndroidInterfaceOptions {
   namespace?: string;
   app_id: string;
-  cr_user_id: string;
+  cr_user_id?: string;
   version?: AppEventPayloadVersion;
 }
 
-export const DEFAULT_OPTIONS: AndroidInterfaceOptions = {
+export const DEFAULT_OPTIONS: Partial<AndroidInterfaceOptions> = {
   namespace: 'Android',
-  app_id: '',
-  cr_user_id: '',
   version: 'v1'
 }
 
