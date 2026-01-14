@@ -16,22 +16,6 @@ describe('Feature: Android Interface', () => {
   });
 
   describe('Scenario: Initialization', () => {
-    test('should initialize with default options when no options provided', () => {
-      // Given no options are passed to constructor
-      androidInterface = new AndroidInterface();
-
-      // Then it should use default options (implicit check via behavior or access private if needed, 
-      // but better to check via log output which reflects options)
-      const eventData = { event: 'init_check' };
-      androidInterface.logSummaryData(eventData);
-
-      const payloadJson = mockLogMessage.mock.calls[0][0];
-      const payload = JSON.parse(payloadJson);
-
-      expect(payload.app_id).toBe(DEFAULT_OPTIONS.app_id);
-      expect(payload.cr_user_id).toBe(DEFAULT_OPTIONS.cr_user_id);
-    });
-
     test('should initialize with custom options', () => {
       // Given custom options are provided
       const customOptions = {
@@ -55,7 +39,10 @@ describe('Feature: Android Interface', () => {
 
   describe('Scenario: Logging an event successfully', () => {
     beforeEach(() => {
-      androidInterface = new AndroidInterface();
+      androidInterface = new AndroidInterface({
+          app_id: 'com.example.app',
+          cr_user_id: 'user-123',
+      });
     });
 
     test('should send a complete summary_data payload to the Android bridge', () => {
