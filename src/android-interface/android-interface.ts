@@ -5,7 +5,7 @@ import { ValidateV1Schema } from './schema-validators';
 export interface AndroidInterfaceOptions {
   namespace?: string;
   app_id: string;
-  cr_user_id?: string;
+  cr_user_id: string;
   version?: AppEventPayloadVersion;
 }
 
