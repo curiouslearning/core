@@ -13,80 +13,76 @@ describe('Feature: Android Interface', () => {
 
   beforeEach(() => {
     mockLogMessage.mockClear();
-    androidInterface = new AndroidInterface();
+  });
+
+  describe('Scenario: Initialization', () => {
+    test('should initialize with custom options', () => {
+      // Given custom options are provided
+      const customOptions = {
+        app_id: 'com.example.app',
+        cr_user_id: 'user-123',
+        namespace: 'Android'
+      };
+      androidInterface = new AndroidInterface(customOptions);
+
+      // When an event is logged
+      androidInterface.logSummaryData({ event: 'test' });
+
+      // Then the payload should contain the custom options
+      const payloadJson = mockLogMessage.mock.calls[0][0];
+      const payload = JSON.parse(payloadJson);
+
+      expect(payload.app_id).toBe(customOptions.app_id);
+      expect(payload.cr_user_id).toBe(customOptions.cr_user_id);
+    });
   });
 
   describe('Scenario: Logging an event successfully', () => {
-    test('should send a summary_data payload to the Android bridge', () => {
-      // Given the Android Interface is initialized with default options
-      // (done in beforeEach)
+    beforeEach(() => {
+      androidInterface = new AndroidInterface({
+          app_id: 'com.example.app',
+          cr_user_id: 'user-123',
+      });
+    });
+
+    test('should send a complete summary_data payload to the Android bridge', () => {
+      // Given the Android Interface is initialized
       const eventData = { event: 'level_complete', score: 100 };
 
       // When I log an event with data
-      androidInterface.logEvent(eventData);
+      androidInterface.logSummaryData(eventData);
 
-      // Then specific payload should be sent to the Android bridge
-      const expectedPayload = JSON.stringify({
+      // Then a specific payload should be sent to the Android bridge
+      expect(mockLogMessage).toHaveBeenCalledTimes(1);
+
+      const payloadJson = mockLogMessage.mock.calls[0][0];
+      const payload = JSON.parse(payloadJson);
+
+      expect(payload).toEqual(expect.objectContaining({
+        collection: 'summary_data',
         data: eventData,
-        collection: 'summary_data'
-      });
+        app_id: expect.any(String),
+        cr_user_id: expect.any(String),
+        timestamp: expect.any(String) // or regex match ISO string
+      }));
 
-      expect(mockLogMessage).toHaveBeenCalledTimes(1);
-      expect(mockLogMessage).toHaveBeenCalledWith(expectedPayload);
+      // Verify timestamp format roughly
+      expect(Date.parse(payload.timestamp)).not.toBeNaN();
     });
-  });
 
-  describe('Scenario: Logging an interaction successfully', () => {
-    test('should send an interaction payload to the Android bridge', () => {
-      // Given the Android Interface is initialized with default options
-      // (done in beforeEach)
-      const interactionData = { button: 'play', screen: 'home' };
+    test('should include provided optional processing instructions', () => {
+      // Given an event with processing options
+      const eventData = { event: 'update_score' };
+      const options = { score: 'replace' as const };
 
-      // When I log an interaction with data
-      androidInterface.logInteraction(interactionData);
+      // When I log the event
+      androidInterface.logSummaryData(eventData, options);
 
-      // Then specific payload should be sent to the Android bridge
-      const expectedPayload = JSON.stringify({
-        data: {
-          data: interactionData,
-          app: DEFAULT_OPTIONS.app
-        },
-        collection: 'interactions',
-      });
+      // Then the payload should include the options
+      const payloadJson = mockLogMessage.mock.calls[0][0];
+      const payload = JSON.parse(payloadJson);
 
-      expect(mockLogMessage).toHaveBeenCalledTimes(1);
-      expect(mockLogMessage).toHaveBeenCalledWith(expectedPayload);
-    });
-  });
-
-  describe('Scenario: Logging with custom options', () => {
-    test('should use custom namespace and app name', () => {
-      // Given the Android Interface is initialized with custom options
-      const customOptions = { namespace: 'MyGame', app: 'SuperGame' };
-      const customInterface = new AndroidInterface(customOptions);
-
-      // And I mock the custom namespace
-      const mockCustomLog = jest.fn();
-      (window as any).MyGame = {
-        logMessage: mockCustomLog
-      };
-
-      const interactionData = { action: 'click' };
-
-      // When I log an interaction
-      customInterface.logInteraction(interactionData);
-
-      // Then the payload should use the custom app name
-      const expectedPayload = JSON.stringify({
-        data: {
-          data: interactionData,
-          app: 'SuperGame'
-        },
-        collection: 'interactions',
-      });
-
-      // And it should be sent to the custom namespace bridge
-      expect(mockCustomLog).toHaveBeenCalledWith(expectedPayload);
+      expect(payload.options).toEqual(options);
     });
   });
 });
