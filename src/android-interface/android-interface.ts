@@ -7,11 +7,13 @@ export interface AndroidInterfaceOptions {
   app_id: string;
   cr_user_id: string;
   version?: AppEventPayloadVersion;
+  debug?: boolean;
 }
 
 export const DEFAULT_OPTIONS: Partial<AndroidInterfaceOptions> = {
   namespace: 'Android',
-  version: 'v1'
+  version: 'v1',
+  debug: false
 }
 
 export class AndroidInterface {
@@ -25,6 +27,7 @@ export class AndroidInterface {
   }
 
   logSummaryData(data: Record<string, any>, options?: AppEventPayloadOptions) {
+    if (this.options.debug) return console.log('AndroidInterface.logSummaryData:', { data, options });
     try {
       const baseParams = this.getBaseParams();
       const payload: AppEventPayload = {
