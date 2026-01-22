@@ -16,9 +16,9 @@ export class PubSub {
 
   /**
    * Subscribes to the given event. Returns an unsubscribe function.
-   * @param event 
-   * @param callback 
-   * @returns 
+   * @param event name of the event to subscribe to.
+   * @param callback callback function to be invoked when the event is published.
+   * @returns unsubscribe function to remove the subscription.
    */
   subscribe(event: string, callback: (data: any) => void) {
     const id = PubSub.NEXT_ID++;
