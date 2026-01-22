@@ -5,3 +5,4 @@ export * from './canvas-renderer/canvas-renderer';
 export * from './delta-time/delta-time';
 export * from './scene-manager/scene-manager';
 export * from './android-interface/android-interface';
+export * from './pub-sub/pub-sub';
