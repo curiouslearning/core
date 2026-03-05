@@ -1,6 +1,6 @@
 export type AppEventPayloadVersion = 'v1';
 
-export type AppEventPayloadCollection = 'summary_data';
+export type AppEventPayloadCollection = 'summary_data' | 'user_sessions_data';
 
 export type PayloadProcessingInstruction = 'add' | 'replace';
 
