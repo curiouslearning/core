@@ -46,6 +46,27 @@ export class AndroidInterface {
     }
   }
 
+  logUserSessionsData(data: Record<string, any>, options?: AppEventPayloadOptions) {
+    if (this.options.debug) console.log('AndroidInterface.logUserSessionsData', { data, options });
+
+    try {
+      const baseParams = this.getBaseParams();
+      const payload: AppEventPayload = {
+        ...baseParams,
+        data,
+        collection: 'user_sessions_data',
+        options,
+        timestamp: this.createTimestamp()
+      };
+
+      this.validatePayload(payload); // throws
+
+      window[this.options.namespace].logMessage(JSON.stringify(payload));
+    } catch (e) {
+      console.warn('Error: AndroidInterface.logUserSessionsData ', e);
+    }
+  }
+
   getBaseParams() {
     const {
       cr_user_id,

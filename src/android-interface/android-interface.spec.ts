@@ -40,8 +40,8 @@ describe('Feature: Android Interface', () => {
   describe('Scenario: Logging an event successfully', () => {
     beforeEach(() => {
       androidInterface = new AndroidInterface({
-          app_id: 'com.example.app',
-          cr_user_id: 'user-123',
+        app_id: 'com.example.app',
+        cr_user_id: 'user-123',
       });
     });
 
@@ -77,6 +77,55 @@ describe('Feature: Android Interface', () => {
 
       // When I log the event
       androidInterface.logSummaryData(eventData, options);
+
+      // Then the payload should include the options
+      const payloadJson = mockLogMessage.mock.calls[0][0];
+      const payload = JSON.parse(payloadJson);
+
+      expect(payload.options).toEqual(options);
+    });
+  });
+
+  describe('Scenario: Logging user session data successfully', () => {
+    beforeEach(() => {
+      androidInterface = new AndroidInterface({
+        app_id: 'com.example.app',
+        cr_user_id: 'user-123',
+      });
+    });
+
+    test('should send a complete user_sessions_data payload to the Android bridge', () => {
+      // Given the Android Interface is initialized
+      const sessionData = { session_id: 'sess-abc', duration: 120 };
+
+      // When I log user session data
+      androidInterface.logUserSessionsData(sessionData);
+
+      // Then a specific payload should be sent to the Android bridge
+      expect(mockLogMessage).toHaveBeenCalledTimes(1);
+
+      const payloadJson = mockLogMessage.mock.calls[0][0];
+      const payload = JSON.parse(payloadJson);
+
+      expect(payload).toEqual(expect.objectContaining({
+        collection: 'user_sessions_data',
+        data: sessionData,
+        app_id: expect.any(String),
+        cr_user_id: expect.any(String),
+        timestamp: expect.any(String) // or regex match ISO string
+      }));
+
+      // Verify timestamp format roughly
+      expect(Date.parse(payload.timestamp)).not.toBeNaN();
+    });
+
+    test('should include provided optional processing instructions', () => {
+      // Given session data with processing options
+      const sessionData = { session_id: 'sess-xyz' };
+      const options = { score: 'replace' as any };
+
+      // When I log the user session data
+      androidInterface.logUserSessionsData(sessionData, options);
 
       // Then the payload should include the options
       const payloadJson = mockLogMessage.mock.calls[0][0];
