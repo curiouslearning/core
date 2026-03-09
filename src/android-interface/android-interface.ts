@@ -8,6 +8,7 @@ export interface AndroidInterfaceOptions {
   cr_user_id: string;
   version?: AppEventPayloadVersion;
   debug?: boolean;
+  log?: boolean;
 }
 
 export const DEFAULT_OPTIONS: Partial<AndroidInterfaceOptions> = {
@@ -45,7 +46,9 @@ export class AndroidInterface {
    * @param options - Optional parameters for the log.
    */
   logSummaryData(data: Record<string, any>, options?: AppEventPayloadOptions) {
-    if (this.options.debug) return console.log('AndroidInterface.logSummaryData:', { data, options });
+    if (this.options.log) console.log('AndroidInterface.logSummaryData:', { data, options });
+    if (this.options.debug) return;
+
     try {
       const baseParams = this.getBaseParams();
       const payload: AppEventPayload = {
@@ -71,7 +74,8 @@ export class AndroidInterface {
    * @param options - Optional parameters for the log.
    */
   logUserSessionsData(data: Record<string, any>, options?: AppEventPayloadOptions) {
-    if (this.options.debug) console.log('AndroidInterface.logUserSessionsData', { data, options });
+    if (this.options.log) console.log('AndroidInterface.logUserSessionsData:', { data, options });
+    if (this.options.debug) return;
 
     try {
       const baseParams = this.getBaseParams();
@@ -91,7 +95,7 @@ export class AndroidInterface {
     }
   }
 
-  protected getBaseParams() {
+  getBaseParams() {
     const {
       cr_user_id,
       app_id
@@ -103,12 +107,12 @@ export class AndroidInterface {
     };
   }
 
-  protected validatePayload(payload: AppEventPayload) {
+  validatePayload(payload: AppEventPayload) {
     // TODO: add more validation logic here as we expand this feature.
     return ValidateV1Schema.parse(payload);
   }
 
-  protected createTimestamp() {
+  createTimestamp() {
     const now = new Date();
     return now.toISOString();
   }
