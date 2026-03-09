@@ -3,7 +3,7 @@ import { TimeoutRegistry } from './timeout-registry';
 import type { TimerId } from './scheduler';
 
 class SchedulerService {
-  // Make scheduler a singleton.
+  // Making scheduler a singleton.
   private scheduler = new Scheduler();
 
   /**
@@ -33,6 +33,9 @@ class SchedulerService {
   }
 }
 
-export const schedulerService = new SchedulerService();
 export type { TimerId };
 export type { TimeoutRegistry };
+
+// Making scheduler service a singleton.
+const schedulerService = new SchedulerService();
+export default schedulerService;
