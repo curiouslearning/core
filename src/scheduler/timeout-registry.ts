@@ -21,14 +21,17 @@ export class TimeoutRegistry {
     if (timerId === null || timerId === undefined) {
       return;
     }
-    this.scheduler.cancelTimeout(timerId);
+    this.scheduler.cancel(timerId);
     this.timeouts.delete(timerId);
   }
 
   cancelAll(): void {
-    for (const timerId of this.timeouts) {
-      this.scheduler.cancelTimeout(timerId);
+    try {
+      for (const timerId of this.timeouts) {
+        this.scheduler.cancel(timerId);
+      }
+    } finally {
+      this.timeouts.clear();
     }
-    this.timeouts.clear();
   }
 }

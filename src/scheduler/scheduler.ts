@@ -1,7 +1,6 @@
 import { Opaque } from 'type-fest';
 
 type TimerId = Opaque<number, 'TimerId'>;
-
 type Timer = {
   id: TimerId;
   callback: () => void;
@@ -10,14 +9,13 @@ type Timer = {
   loop: boolean;
 };
 
-let nextTimerId = 0;
-
 /**
  * Custom scheduler for managing time-based events within the game loop.
  * Unlike standard window.setTimeout/setInterval, this respects the game's 
  * pause state and is driven by deltaTime from the main update loop.
  */
 export default class Scheduler {
+  private nextTimerId = 0;
   private timers: Map<TimerId, Timer> = new Map();
 
   /**
@@ -27,7 +25,7 @@ export default class Scheduler {
    * @returns A unique TimerId for clearing the timeout.
    */
   setTimeout(callback: () => void, delay: number): TimerId {
-    const id = nextTimerId++ as TimerId;
+    const id = this.nextTimerId++ as TimerId;
     this.timers.set(id, {
       id,
       callback,
@@ -42,7 +40,7 @@ export default class Scheduler {
    * Cancels a previously scheduled timeout or interval.
    * @param id The ID of the timer to clear.
    */
-  cancelTimeout(id: TimerId): void {
+  cancel(id: TimerId): void {
     if (id !== undefined && id !== null) {
       this.timers.delete(id);
     }
@@ -55,7 +53,7 @@ export default class Scheduler {
    * @returns A unique TimerId for clearing the interval.
    */
   setInterval(callback: () => void, delay: number): TimerId {
-    const id = nextTimerId++ as TimerId;
+    const id = this.nextTimerId++ as TimerId;
     const safeDelay = Math.max(1, delay); // Minimum 1ms to prevent runaway intervals
     this.timers.set(id, {
       id,
@@ -87,7 +85,7 @@ export default class Scheduler {
         if (timer.loop) {
           timer.remaining += timer.delay;
         } else {
-          this.cancelTimeout(timer.id);
+          this.cancel(timer.id);
         }
       }
     }
