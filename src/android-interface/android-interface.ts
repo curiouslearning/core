@@ -8,6 +8,7 @@ export interface AndroidInterfaceOptions {
   cr_user_id: string;
   version?: AppEventPayloadVersion;
   debug?: boolean;
+  log?: boolean;
 }
 
 export const DEFAULT_OPTIONS: Partial<AndroidInterfaceOptions> = {
@@ -16,6 +17,18 @@ export const DEFAULT_OPTIONS: Partial<AndroidInterfaceOptions> = {
   debug: false
 }
 
+/**
+ * AndroidInterface is a utility class that provides a way to log events to the Android app.
+ * 
+ * @example
+ * const androidInterface = new AndroidInterface({
+ *   app_id: 'com.example.app',
+ *   cr_user_id: 'user-123',
+ * });
+ * 
+ * androidInterface.logSummaryData({ key: 'value' });
+ * androidInterface.logUserSessionsData({ key: 'value' });
+ */
 export class AndroidInterface {
 
   private options: AndroidInterfaceOptions;
@@ -26,8 +39,16 @@ export class AndroidInterface {
     this.options = defaultsDeep(options, DEFAULT_OPTIONS);
   }
 
+  /**
+   * Logs summary data to the Android app.
+   * 
+   * @param data - The summary data to log.
+   * @param options - Optional parameters for the log.
+   */
   logSummaryData(data: Record<string, any>, options?: AppEventPayloadOptions) {
-    if (this.options.debug) return console.log('AndroidInterface.logSummaryData:', { data, options });
+    if (this.options.log) console.log('AndroidInterface.logSummaryData:', { data, options });
+    if (this.options.debug) return;
+
     try {
       const baseParams = this.getBaseParams();
       const payload: AppEventPayload = {
@@ -43,6 +64,34 @@ export class AndroidInterface {
       window[this.options.namespace].logMessage(JSON.stringify(payload));
     } catch (e) {
       console.warn('Error: AndroidInterface.logSummaryData ', e);
+    }
+  }
+
+  /**
+   * Logs user sessions data to the Android app.
+   * 
+   * @param data - The user sessions data to log.
+   * @param options - Optional parameters for the log.
+   */
+  logUserSessionsData(data: Record<string, any>, options?: AppEventPayloadOptions) {
+    if (this.options.log) console.log('AndroidInterface.logUserSessionsData:', { data, options });
+    if (this.options.debug) return;
+
+    try {
+      const baseParams = this.getBaseParams();
+      const payload: AppEventPayload = {
+        ...baseParams,
+        data,
+        collection: 'user_sessions_data',
+        options,
+        timestamp: this.createTimestamp()
+      };
+
+      this.validatePayload(payload); // throws
+
+      window[this.options.namespace].logMessage(JSON.stringify(payload));
+    } catch (e) {
+      console.warn('Error: AndroidInterface.logUserSessionsData ', e);
     }
   }
 
