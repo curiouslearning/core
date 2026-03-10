@@ -44,7 +44,7 @@ describe('TimeoutRegistry', () => {
     expect(callbackB).not.toHaveBeenCalled();
   });
 
-  it('should auto-remove a timer from the registry after it fires', () => {
+  it('should not throw when cancelling an already-fired timer', () => {
     const callback = jest.fn();
     const id = registry.setTimeout(callback, 500);
 

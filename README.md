@@ -23,6 +23,13 @@ draw(deltaTime: number) {
 }
 ```
 
+> **Note:** If used outside of `requestAnimationFrame` — for example in a custom loop that may produce high or unpredictable delta values — it is recommended to cap the delta time to prevent timers from misfiring:
+> ```typescript
+> const MAX_DELTA_MS = 100;
+> schedulerService.update(Math.min(deltaTime, MAX_DELTA_MS));
+> ```
+
+
 ---
 
 ### 2. Create a registry per component
