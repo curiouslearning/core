@@ -38,7 +38,7 @@ Call `createRegistry()` to get a `TimeoutRegistry` scoped to your component. Sch
 
 ```typescript
 import schedulerService from '@curiouslearning/core';
-import type { TimeoutRegistry, TimerId } from '@curiouslearning/schedulerService';
+import type { TimeoutRegistry, TimerId } from '@curiouslearning/core';
 
 class TutorialHandler {
   private registry: TimeoutRegistry = schedulerService.createRegistry();
