@@ -14,7 +14,7 @@ A game-loop-driven timer scheduler that respects pause state. Provides `setTimeo
 Call `update()` every frame. Skip it when paused — timers will naturally pause too.
 
 ```typescript
-import schedulerService from '@curiouslearning/schedulerService';
+import schedulerService from '@curiouslearning/core';
 
 draw(deltaTime: number) {
   if (!this.isPaused) {
@@ -37,7 +37,7 @@ draw(deltaTime: number) {
 Call `createRegistry()` to get a `TimeoutRegistry` scoped to your component. Schedule timers through the registry and call `cancelAll()` on teardown.
 
 ```typescript
-import schedulerService from 'your-package';
+import schedulerService from '@curiouslearning/core';
 import type { TimeoutRegistry, TimerId } from '@curiouslearning/schedulerService';
 
 class TutorialHandler {
