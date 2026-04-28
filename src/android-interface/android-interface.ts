@@ -39,6 +39,10 @@ export class AndroidInterface {
     this.options = defaultsDeep(options, DEFAULT_OPTIONS);
   }
 
+  get namespace(): string {
+    return this.options.namespace ?? DEFAULT_OPTIONS.namespace!;
+  }
+
   /**
    * Logs summary data to the Android app.
    * 
@@ -61,7 +65,7 @@ export class AndroidInterface {
 
       this.validatePayload(payload); // throws
 
-      window[this.options.namespace].logMessage(JSON.stringify(payload));
+      window[this.namespace].logMessage(JSON.stringify(payload));
     } catch (e) {
       console.warn('Error: AndroidInterface.logSummaryData ', e);
     }
@@ -89,7 +93,7 @@ export class AndroidInterface {
 
       this.validatePayload(payload); // throws
 
-      window[this.options.namespace].logMessage(JSON.stringify(payload));
+      window[this.namespace].logMessage(JSON.stringify(payload));
     } catch (e) {
       console.warn('Error: AndroidInterface.logUserSessionsData ', e);
     }
@@ -98,12 +102,14 @@ export class AndroidInterface {
   getBaseParams() {
     const {
       cr_user_id,
-      app_id
+      app_id,
+      version
     } = this.options;
 
     return {
       cr_user_id,
-      app_id
+      app_id,
+      schema_version: version ?? DEFAULT_OPTIONS.version!
     };
   }
 
