@@ -109,7 +109,7 @@ export class AndroidInterface {
     return {
       cr_user_id,
       app_id,
-      schema_version: version
+      schema_version: version ?? DEFAULT_OPTIONS.version!
     };
   }
 
