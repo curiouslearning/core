@@ -11,5 +11,6 @@ export const ValidateV1Schema = z.object({
   app_id: requiredString('App ID'),
   collection: requiredString('Collection'),
   data: z.record(z.string(), z.any()),
+  metadata: z.record(z.string(), z.any()).optional(),
   timestamp: requiredString('Event ISO-8601 timestamp')
 });

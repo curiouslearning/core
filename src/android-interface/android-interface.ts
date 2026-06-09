@@ -1,5 +1,5 @@
 import { defaultsDeep } from 'lodash';
-import { AppEventPayload, AppEventPayloadOptions, AppEventPayloadVersion } from './types';
+import { AppEventPayload, AppEventPayloadMetadata, AppEventPayloadOptions, AppEventPayloadVersion } from './types';
 import { ValidateV1Schema } from './schema-validators';
 
 export interface AndroidInterfaceOptions {
@@ -7,6 +7,7 @@ export interface AndroidInterfaceOptions {
   app_id: string;
   cr_user_id: string;
   version?: AppEventPayloadVersion;
+  metadata?: AppEventPayloadMetadata;
   debug?: boolean;
   log?: boolean;
 }
@@ -103,13 +104,15 @@ export class AndroidInterface {
     const {
       cr_user_id,
       app_id,
-      version
+      version,
+      metadata
     } = this.options;
 
     return {
       cr_user_id,
       app_id,
-      schema_version: version ?? DEFAULT_OPTIONS.version!
+      schema_version: version ?? DEFAULT_OPTIONS.version!,
+      metadata
     };
   }
 
