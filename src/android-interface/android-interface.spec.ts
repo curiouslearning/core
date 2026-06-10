@@ -134,4 +134,54 @@ describe('Feature: Android Interface', () => {
       expect(payload.options).toEqual(options);
     });
   });
+
+  describe('Scenario: Constructor-driven metadata', () => {
+    test('should attach constructor metadata to summary_data payloads', () => {
+      // Given the interface is constructed with metadata
+      androidInterface = new AndroidInterface({
+        app_id: 'com.example.app',
+        cr_user_id: 'user-123',
+        metadata: { appVersion: 'v1.2.3' }
+      });
+
+      // When a summary event is logged without passing metadata per call
+      androidInterface.logSummaryData({ event: 'level_complete' });
+
+      // Then the payload carries the metadata at the top level
+      const payload = JSON.parse(mockLogMessage.mock.calls[0][0]);
+      expect(payload.metadata).toEqual({ appVersion: 'v1.2.3' });
+    });
+
+    test('should attach constructor metadata to user_sessions_data payloads', () => {
+      // Given the interface is constructed with metadata
+      androidInterface = new AndroidInterface({
+        app_id: 'com.example.app',
+        cr_user_id: 'user-123',
+        metadata: { appVersion: 'v1.2.3' }
+      });
+
+      // When a user session event is logged without passing metadata per call
+      androidInterface.logUserSessionsData({ session_id: 'sess-abc' });
+
+      // Then the payload carries the metadata at the top level
+      const payload = JSON.parse(mockLogMessage.mock.calls[0][0]);
+      expect(payload.metadata).toEqual({ appVersion: 'v1.2.3' });
+    });
+
+    test('should omit metadata key entirely when not provided', () => {
+      // Given the interface is constructed without metadata
+      androidInterface = new AndroidInterface({
+        app_id: 'com.example.app',
+        cr_user_id: 'user-123',
+      });
+
+      // When an event is logged
+      androidInterface.logSummaryData({ event: 'test' });
+
+      // Then the serialized payload has no metadata key (backward compatible)
+      const payloadJson = mockLogMessage.mock.calls[0][0];
+      const payload = JSON.parse(payloadJson);
+      expect(payload).not.toHaveProperty('metadata');
+    });
+  });
 });
