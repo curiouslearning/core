@@ -1,5 +1,11 @@
 import { defaultsDeep } from 'lodash';
-import { AppEventPayload, AppEventPayloadMetadata, AppEventPayloadOptions, AppEventPayloadVersion } from './types';
+import {
+  AppEventPayload,
+  AppEventPayloadMetadata,
+  AppEventPayloadOptions,
+  AppEventPayloadVersion,
+  PayloadOptionsFor
+} from './types';
 import { ValidateV1Schema } from './schema-validators';
 
 export interface AndroidInterfaceOptions {
@@ -20,17 +26,26 @@ export const DEFAULT_OPTIONS: Partial<AndroidInterfaceOptions> = {
 
 /**
  * AndroidInterface is a utility class that provides a way to log events to the Android app.
- * 
+ * @typeParam TSummary - the sub-app's summary_data schema.
+ *
  * @example
+ * // Untyped: anything goes.
  * const androidInterface = new AndroidInterface({
  *   app_id: 'com.example.app',
  *   cr_user_id: 'user-123',
  * });
- * 
+ *
  * androidInterface.logSummaryData({ key: 'value' });
  * androidInterface.logUserSessionsData({ key: 'value' });
+ *
+ * @example
+ * // Schema-enforced: a field outside SummaryData will not compile.
+ * const androidInterface = new AndroidInterface<SummaryData>({
+ *   app_id: 'feed-the-monster',
+ *   cr_user_id: 'user-123',
+ * });
  */
-export class AndroidInterface {
+export class AndroidInterface<TSummary = Record<string, any>> {
 
   private options: AndroidInterfaceOptions;
 
@@ -52,17 +67,17 @@ export class AndroidInterface {
    * by the catch blocks below, so callers cannot tell "sent" from "there was nothing to send to".
    */
   isAvailable(): boolean {
-    return typeof window[this.namespace]?.logMessage === 'function';
+    return typeof (window as any)[this.namespace]?.logMessage === 'function';
   }
 
   /**
    * Logs summary data to the Android app.
    *
-   * @param data - The summary data to log.
-   * @param options - Optional parameters for the log.
+   * @param data - The summary data to log, limited to the keys of TSummary.
+   * @param options - Per-field processing instructions, limited to the keys of TSummary.
    * @returns true when the payload was handed to the bridge.
    */
-  logSummaryData(data: Record<string, any>, options?: AppEventPayloadOptions): boolean {
+  logSummaryData(data: TSummary, options?: PayloadOptionsFor<TSummary>): boolean {
     if (this.options.log) console.log('AndroidInterface.logSummaryData:', { data, options });
     if (this.options.debug) return false;
 
@@ -103,17 +118,20 @@ export class AndroidInterface {
    * Values must be numeric. "add" only applies to numbers anything else is written verbatim by
    * the container, which would overwrite rather than seed.
    *
-   * @param defaults - The complete set of numeric fields with their zero-values.
+   * Requires every key of TSummary, not a subset: a partial seed would leave exactly the gaps this
+   * is meant to close.
+   *
+   * @param defaults - Every field in the schema, with its zero-value.
    * @returns true when the payload was handed to the bridge, false when nothing was sent.
    */
-  logInitialSummaryData(defaults: Record<string, number>): boolean {
+  logInitialSummaryData(defaults: Record<keyof TSummary, number>): boolean {
     if (!this.isAvailable() || !this.options.cr_user_id) return false;
 
     const options = Object.fromEntries(
-      Object.keys(defaults).map((key) => [key, 'add'])
-    ) as AppEventPayloadOptions;
+      Object.keys(defaults as object).map((key) => [key, 'add'])
+    ) as PayloadOptionsFor<TSummary>;
 
-    return this.logSummaryData(defaults, options);
+    return this.logSummaryData(defaults as TSummary, options);
   }
 
   /**

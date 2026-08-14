@@ -9,6 +9,11 @@ export interface AppEventPayloadOptions {
 }
 
 /**
+ * Per-field processing instructions constrained to the keys of a sub-app's own payload schema.
+ */
+export type PayloadOptionsFor<T> = Partial<Record<keyof T, PayloadProcessingInstruction>>;
+
+/**
  * Cross-cutting metadata attached to every payload, kept separate from the
  * event-specific `data`. The sub-app sets `appVersion`; the Android container
  * adds `container_app_version` on receipt.

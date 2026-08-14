@@ -288,4 +288,61 @@ describe('Feature: Android Interface', () => {
       expect(androidInterface.isAvailable()).toBe(true);
     });
   });
+
+  /**
+   * These assert COMPILE-TIME behaviour. Each @ts-expect-error fails the suite if the line it
+   * guards stops being an error, which is what stops the enforcement being silently lost — notably
+   * by adding a method-level type parameter, since TypeScript would then infer it from the argument
+   * and every unannotated call would type-check again.
+   */
+  describe('Scenario: Enforcing a sub-app summary schema', () => {
+    type TestSummary = Partial<Record<'levels_completed' | 'puzzle_success', number>>;
+
+    const typed = () => new AndroidInterface<TestSummary>({
+      app_id: 'com.example.app',
+      cr_user_id: 'user-123',
+    });
+
+    test('Given a declared schema, when a declared field is written, then it compiles', () => {
+      typed().logSummaryData({ levels_completed: 1 }, { levels_completed: 'add' });
+
+      expect(mockLogMessage).toHaveBeenCalledTimes(1);
+    });
+
+    test('Given a declared schema, when an undeclared field is written, then it does not compile', () => {
+      // @ts-expect-error - 'not_a_field' is not part of TestSummary
+      typed().logSummaryData({ not_a_field: 1 });
+
+      expect(mockLogMessage).toHaveBeenCalledTimes(1);
+    });
+
+    test('Given a declared schema, when options name an undeclared field, then it does not compile', () => {
+      // @ts-expect-error - options keys are constrained to TestSummary
+      typed().logSummaryData({ levels_completed: 1 }, { not_a_field: 'add' });
+
+      expect(mockLogMessage).toHaveBeenCalledTimes(1);
+    });
+
+    test('Given a declared schema, when seeding a subset of it, then it does not compile', () => {
+      // @ts-expect-error - seeding requires every key, or it leaves the gaps it exists to close
+      typed().logInitialSummaryData({ levels_completed: 0 });
+
+      expect(mockLogMessage).toHaveBeenCalledTimes(1);
+    });
+
+    test('Given a declared schema, when seeding all of it, then it compiles', () => {
+      typed().logInitialSummaryData({ levels_completed: 0, puzzle_success: 0 });
+
+      expect(mockLogMessage).toHaveBeenCalledTimes(1);
+    });
+
+    test('Given no schema, when arbitrary fields are written, then it still compiles', () => {
+      // Backward compatibility: consumers that pass no type argument are unaffected.
+      const untyped = new AndroidInterface({ app_id: 'assessment', cr_user_id: 'user-123' });
+
+      untyped.logSummaryData({ score: 5, anything: 'goes' }, { score: 'replace' });
+
+      expect(mockLogMessage).toHaveBeenCalledTimes(1);
+    });
+  });
 });
