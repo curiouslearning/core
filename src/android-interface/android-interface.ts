@@ -45,14 +45,26 @@ export class AndroidInterface {
   }
 
   /**
+   * Whether the Android bridge is reachable.
+   *
+   * The bridge only exists when the sub-app runs inside the Curious Reader WebView; during web
+   * play it is absent. Without this check the missing bridge surfaces as a TypeError swallowed
+   * by the catch blocks below, so callers cannot tell "sent" from "there was nothing to send to".
+   */
+  isAvailable(): boolean {
+    return typeof window[this.namespace]?.logMessage === 'function';
+  }
+
+  /**
    * Logs summary data to the Android app.
-   * 
+   *
    * @param data - The summary data to log.
    * @param options - Optional parameters for the log.
+   * @returns true when the payload was handed to the bridge.
    */
-  logSummaryData(data: Record<string, any>, options?: AppEventPayloadOptions) {
+  logSummaryData(data: Record<string, any>, options?: AppEventPayloadOptions): boolean {
     if (this.options.log) console.log('AndroidInterface.logSummaryData:', { data, options });
-    if (this.options.debug) return;
+    if (this.options.debug) return false;
 
     try {
       const baseParams = this.getBaseParams();
@@ -67,9 +79,41 @@ export class AndroidInterface {
       this.validatePayload(payload); // throws
 
       window[this.namespace].logMessage(JSON.stringify(payload));
+
+      return true;
     } catch (e) {
       console.warn('Error: AndroidInterface.logSummaryData ', e);
+
+      return false;
     }
+  }
+
+  /**
+   * Seeds a summary_data document with its default values, so numeric fields read 0 rather than
+   * being absent until the first event of that type fires.
+   *
+   * Every field is sent with the "add" instruction, which the container turns into
+   * FieldValue.increment. Because increment treats a missing field as 0, a 0 default creates the
+   * field when it is absent and is a true no-op when it already holds a real value. That makes
+   * this safe to call repeatedly, and it backfills documents written before a field existed.
+   *
+   * The options map is derived here rather than accepted from the caller on purpose: "replace" on
+   * a 0 default would overwrite real counts on every call, so it must not be expressible.
+   *
+   * Values must be numeric. "add" only applies to numbers anything else is written verbatim by
+   * the container, which would overwrite rather than seed.
+   *
+   * @param defaults - The complete set of numeric fields with their zero-values.
+   * @returns true when the payload was handed to the bridge, false when nothing was sent.
+   */
+  logInitialSummaryData(defaults: Record<string, number>): boolean {
+    if (!this.isAvailable() || !this.options.cr_user_id) return false;
+
+    const options = Object.fromEntries(
+      Object.keys(defaults).map((key) => [key, 'add'])
+    ) as AppEventPayloadOptions;
+
+    return this.logSummaryData(defaults, options);
   }
 
   /**
@@ -77,10 +121,11 @@ export class AndroidInterface {
    * 
    * @param data - The user sessions data to log.
    * @param options - Optional parameters for the log.
+   * @returns true when the payload was handed to the bridge.
    */
-  logUserSessionsData(data: Record<string, any>, options?: AppEventPayloadOptions) {
+  logUserSessionsData(data: Record<string, any>, options?: AppEventPayloadOptions): boolean {
     if (this.options.log) console.log('AndroidInterface.logUserSessionsData:', { data, options });
-    if (this.options.debug) return;
+    if (this.options.debug) return false;
 
     try {
       const baseParams = this.getBaseParams();
@@ -95,8 +140,12 @@ export class AndroidInterface {
       this.validatePayload(payload); // throws
 
       window[this.namespace].logMessage(JSON.stringify(payload));
+
+      return true;
     } catch (e) {
       console.warn('Error: AndroidInterface.logUserSessionsData ', e);
+
+      return false;
     }
   }
 

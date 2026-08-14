@@ -184,4 +184,108 @@ describe('Feature: Android Interface', () => {
       expect(payload).not.toHaveProperty('metadata');
     });
   });
+
+  describe('Scenario: Seeding initial summary data', () => {
+    const defaults = {
+      highest_level_completed: 0,
+      levels_completed: 0,
+      puzzles_completed: 0
+    };
+
+    beforeEach(() => {
+      androidInterface = new AndroidInterface({
+        app_id: 'com.example.app',
+        cr_user_id: 'user-123',
+      });
+    });
+
+    test('Given defaults, when seeding, then every field is sent with the "add" instruction', () => {
+      // Given an interface and a set of zero-valued defaults
+      // When the initial summary data is seeded
+      androidInterface.logInitialSummaryData(defaults);
+
+      // Then a summary_data payload carries the defaults with an all-"add" options map.
+      // "add" is what makes this a no-op on existing values: the container maps it to
+      // FieldValue.increment, and increment(0) neither overwrites nor fails on a missing field.
+      expect(mockLogMessage).toHaveBeenCalledTimes(1);
+
+      const payload = JSON.parse(mockLogMessage.mock.calls[0][0]);
+
+      expect(payload.collection).toBe('summary_data');
+      expect(payload.data).toEqual(defaults);
+      expect(payload.options).toEqual({
+        highest_level_completed: 'add',
+        levels_completed: 'add',
+        puzzles_completed: 'add'
+      });
+    });
+
+    test('Given a reachable bridge, when seeding, then it reports the payload was sent', () => {
+      // Given a reachable bridge
+      // When the initial summary data is seeded
+      const sent = androidInterface.logInitialSummaryData(defaults);
+
+      // Then the caller can tell it was sent, so it may record that seeding happened
+      expect(sent).toBe(true);
+    });
+
+    test('Given no cr_user_id, when seeding, then nothing is sent and it reports false', () => {
+      // Given an interface with no cr_user_id (web play, no cr_user_id URL param)
+      androidInterface = new AndroidInterface({
+        app_id: 'com.example.app',
+        cr_user_id: '',
+      });
+
+      // When the initial summary data is seeded
+      const sent = androidInterface.logInitialSummaryData(defaults);
+
+      // Then nothing reaches the bridge and the caller is told so
+      expect(sent).toBe(false);
+      expect(mockLogMessage).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Scenario: The Android bridge is absent', () => {
+    let savedBridge: any;
+
+    beforeEach(() => {
+      // Given the sub-app is running outside the Curious Reader WebView (e.g. web play)
+      savedBridge = (window as any).Android;
+      delete (window as any).Android;
+
+      androidInterface = new AndroidInterface({
+        app_id: 'com.example.app',
+        cr_user_id: 'user-123',
+      });
+    });
+
+    afterEach(() => {
+      (window as any).Android = savedBridge;
+    });
+
+    test('Given no bridge, when asked, then it reports itself unavailable', () => {
+      expect(androidInterface.isAvailable()).toBe(false);
+    });
+
+    test('Given no bridge, when seeding, then nothing is sent and it reports false', () => {
+      // When the initial summary data is seeded
+      const sent = androidInterface.logInitialSummaryData({ levels_completed: 0 });
+
+      // Then it reports false rather than swallowing a TypeError and looking successful.
+      // Callers rely on this to avoid recording that seeding happened when it did not.
+      expect(sent).toBe(false);
+      expect(mockLogMessage).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Scenario: The Android bridge is present', () => {
+    test('Given a bridge, when asked, then it reports itself available', () => {
+      androidInterface = new AndroidInterface({
+        app_id: 'com.example.app',
+        cr_user_id: 'user-123',
+      });
+
+      expect(androidInterface.isAvailable()).toBe(true);
+    });
+  });
 });
