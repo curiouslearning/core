@@ -12,11 +12,20 @@ export interface AndroidInterfaceOptions {
   namespace?: string;
   app_id: string;
   cr_user_id: string;
+  /**
+   * Selected language. The container keys a summary document on cr_user_id + app_id + language, so
+   * this scopes the seed guard to the same document identity. Omit it if the sub-app has no notion
+   * of language; seeding is then guarded per user and app only.
+   */
+  lang?: string;
   version?: AppEventPayloadVersion;
   metadata?: AppEventPayloadMetadata;
   debug?: boolean;
   log?: boolean;
 }
+
+/** localStorage prefix for the "this document has been seeded" marker. */
+const SEED_MARKER_PREFIX = 'crSummaryInit';
 
 export const DEFAULT_OPTIONS: Partial<AndroidInterfaceOptions> = {
   namespace: 'Android',
@@ -43,7 +52,10 @@ export const DEFAULT_OPTIONS: Partial<AndroidInterfaceOptions> = {
  * const androidInterface = new AndroidInterface<SummaryData>({
  *   app_id: 'feed-the-monster',
  *   cr_user_id: 'user-123',
+ *   lang: 'english',
  * });
+ *
+ * androidInterface.logInitialSummaryData(SUMMARY_DEFAULTS);
  */
 export class AndroidInterface<TSummary = Record<string, any>> {
 
@@ -104,34 +116,75 @@ export class AndroidInterface<TSummary = Record<string, any>> {
   }
 
   /**
-   * Seeds a summary_data document with its default values, so numeric fields read 0 rather than
-   * being absent until the first event of that type fires.
+   * Seeds a summary document with the given defaults, so its fields read 0 rather than being absent
+   * until the first event of that type fires.
    *
-   * Every field is sent with the "add" instruction, which the container turns into
-   * FieldValue.increment. Because increment treats a missing field as 0, a 0 default creates the
-   * field when it is absent and is a true no-op when it already holds a real value. That makes
-   * this safe to call repeatedly, and it backfills documents written before a field existed.
+   * Every field is sent as "add", which the container maps to FieldValue.increment. Since increment
+   * treats a missing field as 0, seeding creates absent fields and is a true no-op on real values
+   * so it also backfills documents written before a field existed. The instructions are derived here
+   * rather than accepted, because "replace" on a 0 would overwrite real counts instead.
    *
-   * The options map is derived here rather than accepted from the caller on purpose: "replace" on
-   * a 0 default would overwrite real counts on every call, so it must not be expressible.
+   * Takes `Required<TSummary>`: seeding a subset would leave exactly the gaps it exists to close.
+   * Values should be 0, a non-zero default increments rather than seeds.
    *
-   * Values must be numeric. "add" only applies to numbers anything else is written verbatim by
-   * the container, which would overwrite rather than seed.
+   * Sends at most once per document, tracked in localStorage, since each send bumps updated_at. The
+   * marker is recorded only after a successful send, so a run with no bridge (web play, same origin
+   * as the in-container build) does not suppress a later real one.
    *
-   * Requires every key of TSummary, not a subset: a partial seed would leave exactly the gaps this
-   * is meant to close.
-   *
-   * @param defaults - Every field in the schema, with its zero-value.
+   * @param defaults - Every field in the schema, each set to 0.
    * @returns true when the payload was handed to the bridge, false when nothing was sent.
    */
-  logInitialSummaryData(defaults: Record<keyof TSummary, number>): boolean {
+  logInitialSummaryData(defaults: Required<TSummary>): boolean {
     if (!this.isAvailable() || !this.options.cr_user_id) return false;
 
+    const fields = Object.keys(defaults as object);
+    const marker = this.seedMarkerKey(fields);
+
+    if (this.hasSeeded(marker)) return false;
+
     const options = Object.fromEntries(
-      Object.keys(defaults as object).map((key) => [key, 'add'])
+      fields.map((field) => [field, 'add'])
     ) as PayloadOptionsFor<TSummary>;
 
-    return this.logSummaryData(defaults as TSummary, options);
+    const sent = this.logSummaryData(defaults as TSummary, options);
+
+    if (sent) this.recordSeeded(marker);
+
+    return sent;
+  }
+
+  /**
+   * Identifies a seeded document. The field list is part of the key, so adding a field to the schema
+   * changes it and re-seeds once which is what keeps the seed in step with the schema without a
+   * version constant anyone has to remember to bump.
+   */
+  private seedMarkerKey(fields: string[]): string {
+    const { cr_user_id, app_id, lang } = this.options;
+
+    return [
+      SEED_MARKER_PREFIX,
+      cr_user_id,
+      app_id,
+      lang ?? '',
+      [...fields].sort().join(',')
+    ].join(':');
+  }
+
+  /** Storage is unavailable in private-mode browsers; prefer seeding over skipping when unknown. */
+  private hasSeeded(marker: string): boolean {
+    try {
+      return localStorage.getItem(marker) !== null;
+    } catch {
+      return false;
+    }
+  }
+
+  private recordSeeded(marker: string): void {
+    try {
+      localStorage.setItem(marker, this.createTimestamp());
+    } catch {
+      // Cannot record it; a later launch will seed again, which is a no-op on the values.
+    }
   }
 
   /**

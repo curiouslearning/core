@@ -193,18 +193,19 @@ describe('Feature: Android Interface', () => {
     };
 
     beforeEach(() => {
+      localStorage.clear();
       androidInterface = new AndroidInterface({
         app_id: 'com.example.app',
         cr_user_id: 'user-123',
       });
     });
 
-    test('Given defaults, when seeding, then every field is sent with the "add" instruction', () => {
+    test('Given defaults, when seeding, then each field is sent as 0 with the "add" instruction', () => {
       // Given an interface and a set of zero-valued defaults
       // When the initial summary data is seeded
       androidInterface.logInitialSummaryData(defaults);
 
-      // Then a summary_data payload carries the defaults with an all-"add" options map.
+      // Then a summary_data payload carries each field at 0 with an all-"add" options map.
       // "add" is what makes this a no-op on existing values: the container maps it to
       // FieldValue.increment, and increment(0) neither overwrites nor fails on a missing field.
       expect(mockLogMessage).toHaveBeenCalledTimes(1);
@@ -212,7 +213,11 @@ describe('Feature: Android Interface', () => {
       const payload = JSON.parse(mockLogMessage.mock.calls[0][0]);
 
       expect(payload.collection).toBe('summary_data');
-      expect(payload.data).toEqual(defaults);
+      expect(payload.data).toEqual({
+        highest_level_completed: 0,
+        levels_completed: 0,
+        puzzles_completed: 0
+      });
       expect(payload.options).toEqual({
         highest_level_completed: 'add',
         levels_completed: 'add',
@@ -242,6 +247,117 @@ describe('Feature: Android Interface', () => {
       // Then nothing reaches the bridge and the caller is told so
       expect(sent).toBe(false);
       expect(mockLogMessage).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Scenario: Seeding at most once per document', () => {
+    const defaults = { levels_completed: 0, puzzles_completed: 0 };
+
+    const build = (over: Record<string, any> = {}) => new AndroidInterface({
+      app_id: 'feed-the-monster',
+      cr_user_id: 'user-123',
+      lang: 'english',
+      ...over
+    });
+
+    beforeEach(() => {
+      localStorage.clear();
+    });
+
+    test('Given a document already seeded, when seeding again, then nothing is sent', () => {
+      // Given a first seed
+      expect(build().logInitialSummaryData(defaults)).toBe(true);
+      expect(mockLogMessage).toHaveBeenCalledTimes(1);
+
+      // When a later launch seeds the same document
+      const sent = build().logInitialSummaryData(defaults);
+
+      // Then it is not re-sent — each send bumps updated_at
+      expect(sent).toBe(false);
+      expect(mockLogMessage).toHaveBeenCalledTimes(1);
+    });
+
+    test('Given a seeded language, when another language launches, then it seeds again', () => {
+      // Given english is seeded, and the container keys summaries per language
+      build().logInitialSummaryData(defaults);
+
+      // When the player switches language
+      const sent = build({ lang: 'kembata' }).logInitialSummaryData(defaults);
+
+      // Then that document is seeded too
+      expect(sent).toBe(true);
+      expect(mockLogMessage).toHaveBeenCalledTimes(2);
+    });
+
+    test('Given a seeded user, when a different user plays on the same device, then it seeds again', () => {
+      // Given one user is seeded, and localStorage is shared per origin
+      build().logInitialSummaryData(defaults);
+
+      // When the container launches for another cr_user_id
+      const sent = build({ cr_user_id: 'user-456' }).logInitialSummaryData(defaults);
+
+      // Then the second user is not starved of a seed
+      expect(sent).toBe(true);
+      expect(mockLogMessage).toHaveBeenCalledTimes(2);
+    });
+
+    test('Given a seeded schema, when a field is added to it, then it seeds again', () => {
+      // Given the current schema is seeded
+      build().logInitialSummaryData(defaults);
+
+      // When a field is added to the schema, changing the field set
+      const sent = build().logInitialSummaryData({ ...defaults, brand_new_field: 0 });
+
+      // Then it re-seeds so the new field reaches existing documents, with no version to bump
+      expect(sent).toBe(true);
+      expect(mockLogMessage).toHaveBeenCalledTimes(2);
+    });
+
+    test('Given field order differs, when seeding, then it is still treated as the same schema', () => {
+      // Given a seed
+      build().logInitialSummaryData({ levels_completed: 0, puzzles_completed: 0 });
+
+      // When the same fields are supplied in a different order
+      const sent = build().logInitialSummaryData({ puzzles_completed: 0, levels_completed: 0 });
+
+      // Then key order does not cause a spurious re-seed
+      expect(sent).toBe(false);
+      expect(mockLogMessage).toHaveBeenCalledTimes(1);
+    });
+
+    test('Given nothing was sent, when seeding, then no marker is recorded so a later launch retries', () => {
+      // Given there is no bridge to send to (web play, same origin as the in-container build)
+      const saved = (window as any).Android;
+      delete (window as any).Android;
+
+      expect(build().logInitialSummaryData(defaults)).toBe(false);
+
+      // When the container later provides a bridge
+      (window as any).Android = saved;
+      const sent = build().logInitialSummaryData(defaults);
+
+      // Then seeding still happens — a browser visit must not suppress it permanently
+      expect(sent).toBe(true);
+      expect(mockLogMessage).toHaveBeenCalledTimes(1);
+    });
+
+    test('Given localStorage is unavailable, when seeding, then it still sends and does not throw', () => {
+      // Given storage is disabled, as in private browsing
+      const getItem = jest.spyOn(window.localStorage.__proto__ as any, 'getItem')
+        .mockImplementation(() => { throw new Error('storage disabled'); });
+      const setItem = jest.spyOn(window.localStorage.__proto__ as any, 'setItem')
+        .mockImplementation(() => { throw new Error('storage disabled'); });
+
+      // When seeding
+      let sent: boolean | undefined;
+      expect(() => { sent = build().logInitialSummaryData(defaults); }).not.toThrow();
+
+      // Then seeding is preferred over skipping when we cannot tell
+      expect(sent).toBe(true);
+      expect(mockLogMessage).toHaveBeenCalledTimes(1);
+
+      getItem.mockRestore();
+      setItem.mockRestore();
     });
   });
 
@@ -296,7 +412,10 @@ describe('Feature: Android Interface', () => {
    * and every unannotated call would type-check again.
    */
   describe('Scenario: Enforcing a sub-app summary schema', () => {
-    type TestSummary = Partial<Record<'levels_completed' | 'puzzle_success', number>>;
+    interface TestSummary {
+      levels_completed?: number;
+      puzzle_success?: number;
+    }
 
     const typed = () => new AndroidInterface<TestSummary>({
       app_id: 'com.example.app',
@@ -324,7 +443,8 @@ describe('Feature: Android Interface', () => {
     });
 
     test('Given a declared schema, when seeding a subset of it, then it does not compile', () => {
-      // @ts-expect-error - seeding requires every key, or it leaves the gaps it exists to close
+      // Required<TSummary>: a partial seed would leave exactly the gaps seeding exists to close.
+      // @ts-expect-error - 'puzzle_success' is missing
       typed().logInitialSummaryData({ levels_completed: 0 });
 
       expect(mockLogMessage).toHaveBeenCalledTimes(1);
