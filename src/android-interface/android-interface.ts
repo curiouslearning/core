@@ -92,6 +92,7 @@ export class AndroidInterface<TSummary = Record<string, any>> {
   logSummaryData(data: TSummary, options?: PayloadOptionsFor<TSummary>): boolean {
     if (this.options.log) console.log('AndroidInterface.logSummaryData:', { data, options });
     if (this.options.debug) return false;
+    if (!this.isAvailable() || !this.options.cr_user_id) return false;
 
     try {
       const baseParams = this.getBaseParams();
