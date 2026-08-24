@@ -20,7 +20,8 @@ export type PayloadOptionsFor<T> = Partial<Record<keyof T, PayloadProcessingInst
  */
 export interface AppEventPayloadMetadata {
   /** Sub-app's own version. Mirrors the Firebase `event_params.appVersion`. */
-  appVersion?: string;
+  appVersion: string;
+  environment: string;
   [key: string]: any;
 }
 
