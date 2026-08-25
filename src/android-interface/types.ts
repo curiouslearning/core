@@ -31,6 +31,6 @@ export interface AppEventPayload {
   collection: AppEventPayloadCollection;
   data: any;
   options?: AppEventPayloadOptions;
-  metadata?: AppEventPayloadMetadata;
+  metadata: AppEventPayloadMetadata;
   timestamp: string;
 }
