@@ -141,7 +141,7 @@ describe('Feature: Android Interface', () => {
       androidInterface = new AndroidInterface({
         app_id: 'com.example.app',
         cr_user_id: 'user-123',
-        metadata: { appVersion: 'v1.2.3' }
+        metadata: { appVersion: 'v1.2.3', environment: 'production' }
       });
 
       // When a summary event is logged without passing metadata per call
@@ -149,7 +149,7 @@ describe('Feature: Android Interface', () => {
 
       // Then the payload carries the metadata at the top level
       const payload = JSON.parse(mockLogMessage.mock.calls[0][0]);
-      expect(payload.metadata).toEqual({ appVersion: 'v1.2.3' });
+      expect(payload.metadata).toEqual({ appVersion: 'v1.2.3', environment: 'production' });
     });
 
     test('should attach constructor metadata to user_sessions_data payloads', () => {
@@ -157,7 +157,7 @@ describe('Feature: Android Interface', () => {
       androidInterface = new AndroidInterface({
         app_id: 'com.example.app',
         cr_user_id: 'user-123',
-        metadata: { appVersion: 'v1.2.3' }
+        metadata: { appVersion: 'v1.2.3', environment: 'production' }
       });
 
       // When a user session event is logged without passing metadata per call
@@ -165,7 +165,7 @@ describe('Feature: Android Interface', () => {
 
       // Then the payload carries the metadata at the top level
       const payload = JSON.parse(mockLogMessage.mock.calls[0][0]);
-      expect(payload.metadata).toEqual({ appVersion: 'v1.2.3' });
+      expect(payload.metadata).toEqual({ appVersion: 'v1.2.3', environment: 'production' });
     });
 
     test('should omit metadata key entirely when not provided', () => {
