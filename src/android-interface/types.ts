@@ -15,12 +15,12 @@ export type PayloadOptionsFor<T> = Partial<Record<keyof T, PayloadProcessingInst
 
 /**
  * Cross-cutting metadata attached to every payload, kept separate from the
- * event-specific `data`. The sub-app sets `appVersion`; the Android container
+ * event-specific `data`. The sub-app sets `app_version`; the Android container
  * adds `container_app_version` on receipt.
  */
 export interface AppEventPayloadMetadata {
-  /** Sub-app's own version. Mirrors the Firebase `event_params.appVersion`. */
-  appVersion: string;
+  /** Sub-app's own version. Mirrors the Firebase `event_params.app_version`. */
+  app_version: string;
   environment: string;
   [key: string]: any;
 }
